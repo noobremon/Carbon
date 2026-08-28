@@ -55,7 +55,7 @@ describe('Critical Issues Remediation Test Suite', () => {
 
   test('Critical Fix 3: GET /api/aggregates on empty database returns [] instead of client_id: undefined', async () => {
     const response = await request(app).get('/api/aggregates');
-    
+
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.aggregates).toEqual([]);

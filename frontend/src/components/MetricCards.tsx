@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Copy, AlertOctagon, XCircle, DollarSign, TrendingUp } from 'lucide-react';
+import { CheckCircle2, Copy, AlertOctagon, XCircle, DollarSign } from 'lucide-react';
 import { useCountUp } from '../hooks/useCountUp';
 
 interface MetricProps {
@@ -17,8 +17,8 @@ interface StatCardProps {
   isCurrency?: boolean;
   icon: React.ReactNode;
   accentColor: string;
-  bgGradient: string;
-  badgeClass: string;
+  iconBg: string;
+  isPrimary?: boolean;
   description: string;
   subStat?: string;
 }
@@ -29,25 +29,25 @@ const SingleMetricCard: React.FC<StatCardProps> = ({
   isCurrency = false,
   icon,
   accentColor,
-  bgGradient,
-  badgeClass,
+  iconBg,
+  isPrimary = false,
   description,
   subStat
 }) => {
   const animatedValue = useCountUp(countVal, {
     decimals: isCurrency ? 2 : 0,
     prefix: isCurrency ? '$' : '',
-    duration: 700
+    duration: 600
   });
 
   return (
-    <div className={`metric-card ${badgeClass} animate-fade-in`}>
+    <div className={`metric-card ${isPrimary ? 'card-primary' : ''} animate-fade-in`}>
       <div className="metric-card-inner">
         <div className="metric-card-top">
-          <div className="metric-icon-box" style={{ background: bgGradient, color: accentColor }}>
+          <span className="metric-title">{title}</span>
+          <div className="metric-icon-box" style={{ background: iconBg, color: accentColor }}>
             {icon}
           </div>
-          <span className="metric-title">{title}</span>
         </div>
 
         <div className="metric-value-row">
@@ -59,7 +59,6 @@ const SingleMetricCard: React.FC<StatCardProps> = ({
 
         <p className="metric-description">{description}</p>
       </div>
-      <div className="metric-card-glow" style={{ background: accentColor }} />
     </div>
   );
 };
@@ -78,15 +77,15 @@ export const MetricCards: React.FC<MetricProps> = ({
   return (
     <section className="metrics-grid-container" aria-label="System Metrics Summary">
       <div className="metrics-grid">
-        {/* Total Processed Volume */}
+        {/* Total Processed Volume (Primary Dominant Card) */}
         <SingleMetricCard
           title="Processed Volume"
           countVal={totalVolume}
           isCurrency={true}
-          icon={<DollarSign size={20} />}
+          icon={<DollarSign size={16} />}
           accentColor="#10b981"
-          bgGradient="rgba(16, 185, 129, 0.15)"
-          badgeClass="card-processed"
+          iconBg="rgba(16, 185, 129, 0.12)"
+          isPrimary={true}
           description="Sum of canonical purchase amounts persisted in aggregations"
         />
 
@@ -94,22 +93,20 @@ export const MetricCards: React.FC<MetricProps> = ({
         <SingleMetricCard
           title="Processed"
           countVal={processedCount}
-          icon={<CheckCircle2 size={20} />}
+          icon={<CheckCircle2 size={16} />}
           accentColor="#34d399"
-          bgGradient="rgba(52, 211, 153, 0.15)"
-          badgeClass="card-processed"
+          iconBg="rgba(52, 211, 153, 0.12)"
           subStat={totalEvents > 0 ? `${processedPercent}%` : undefined}
-          description="Normalized & atomically committed to aggregate store"
+          description="Normalized & atomically committed to database"
         />
 
         {/* Duplicates Handled */}
         <SingleMetricCard
           title="Duplicate"
           countVal={duplicateCount}
-          icon={<Copy size={20} />}
+          icon={<Copy size={16} />}
           accentColor="#06b6d4"
-          bgGradient="rgba(6, 182, 212, 0.15)"
-          badgeClass="card-duplicate"
+          iconBg="rgba(6, 182, 212, 0.12)"
           subStat={totalEvents > 0 ? `${duplicatePercent}%` : undefined}
           description="Idempotent SHA-256 fingerprint hit (aggregates unaffected)"
         />
@@ -118,22 +115,20 @@ export const MetricCards: React.FC<MetricProps> = ({
         <SingleMetricCard
           title="Failed"
           countVal={failedCount}
-          icon={<AlertOctagon size={20} />}
+          icon={<AlertOctagon size={16} />}
           accentColor="#f43f5e"
-          bgGradient="rgba(244, 63, 94, 0.15)"
-          badgeClass="card-failed"
-          description="Simulated DB failure or crash; transaction rolled back"
+          iconBg="rgba(244, 63, 94, 0.12)"
+          description="Simulated write crash; transaction rolled back"
         />
 
         {/* Rejected Events */}
         <SingleMetricCard
           title="Rejected"
           countVal={rejectedCount}
-          icon={<XCircle size={20} />}
+          icon={<XCircle size={16} />}
           accentColor="#f59e0b"
-          bgGradient="rgba(245, 158, 11, 0.15)"
-          badgeClass="card-rejected"
-          description="Malformed JSON syntax or missing mandatory schema fields"
+          iconBg="rgba(245, 158, 11, 0.12)"
+          description="Malformed JSON syntax or missing schema fields"
         />
       </div>
     </section>

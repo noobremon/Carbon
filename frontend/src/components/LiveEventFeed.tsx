@@ -8,24 +8,20 @@ import {
   XCircle,
   Search,
   ChevronDown,
-  ChevronUp,
-  FileJson,
-  Fingerprint,
-  Clock,
-  Filter
+  ChevronUp
 } from 'lucide-react';
 import { useToast } from './Toast';
 
 interface Props {
   events: RawEventEntity[];
-  filterStatus?: 'ALL' | 'PROCESSED' | 'DUPLICATE' | 'REJECTED' | 'FAILED';
-  onFilterStatusChange?: (status: 'ALL' | 'PROCESSED' | 'DUPLICATE' | 'REJECTED' | 'FAILED') => void;
+  filterStatus?: 'ALL' | 'PROCESSED' | 'DUPLICATE' | 'REJECTED' | 'FAILED' | 'FAILED_OR_REJECTED';
+  onLoadExample?: () => void;
 }
 
 export const LiveEventFeed: React.FC<Props> = ({
   events,
   filterStatus = 'ALL',
-  onFilterStatusChange
+  onLoadExample
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -37,11 +33,12 @@ export const LiveEventFeed: React.FC<Props> = ({
   };
 
   const filteredEvents = events.filter(ev => {
-    // Status filter
-    if (filterStatus !== 'ALL' && ev.status !== filterStatus) {
+    if (filterStatus === 'FAILED_OR_REJECTED') {
+      if (ev.status !== 'FAILED' && ev.status !== 'REJECTED') return false;
+    } else if (filterStatus !== 'ALL' && ev.status !== filterStatus) {
       return false;
     }
-    // Search query filter (matches ID, client_id, metric, or error_message)
+
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
       const matchId = String(ev.id).includes(q);
@@ -59,25 +56,25 @@ export const LiveEventFeed: React.FC<Props> = ({
       case 'PROCESSED':
         return (
           <span className="badge badge-PROCESSED">
-            <CheckCircle2 size={12} /> PROCESSED
+            <CheckCircle2 size={11} /> Processed
           </span>
         );
       case 'DUPLICATE':
         return (
           <span className="badge badge-DUPLICATE">
-            <Copy size={12} /> DUPLICATE
+            <Copy size={11} /> Duplicate
           </span>
         );
       case 'FAILED':
         return (
           <span className="badge badge-FAILED">
-            <AlertOctagon size={12} /> FAILED
+            <AlertOctagon size={11} /> Failed
           </span>
         );
       case 'REJECTED':
         return (
           <span className="badge badge-REJECTED">
-            <XCircle size={12} /> REJECTED
+            <XCircle size={11} /> Rejected
           </span>
         );
       default:
@@ -90,12 +87,12 @@ export const LiveEventFeed: React.FC<Props> = ({
       {/* Feed Toolbar */}
       <div className="feed-toolbar">
         <div className="feed-search-wrapper">
-          <Search size={15} className="feed-search-icon" />
+          <Search size={14} className="feed-search-icon" />
           <input
             id="input-search-feed"
             type="text"
             className="feed-search-input"
-            placeholder="Search by client ID, event ID, fingerprint, or error..."
+            placeholder="Search by client, metric, ID, fingerprint..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             aria-label="Filter events by keyword"
@@ -104,7 +101,7 @@ export const LiveEventFeed: React.FC<Props> = ({
             <button
               className="feed-clear-search"
               onClick={() => setSearchTerm('')}
-              aria-label="Clear search filter"
+              aria-label="Clear search"
             >
               ×
             </button>
@@ -117,17 +114,19 @@ export const LiveEventFeed: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Events Table / Card List */}
+      {/* Events Table / Empty State */}
       {filteredEvents.length === 0 ? (
         <div className="feed-empty-state">
           <div className="empty-icon-circle">
-            <Layers size={32} />
+            <Layers size={22} />
           </div>
-          <h4 className="empty-title">No matching events found</h4>
+          <h4 className="empty-title">
+            {events.length === 0 ? 'No events yet' : 'No matching events found'}
+          </h4>
           <p className="empty-desc">
             {events.length === 0
-              ? 'Submit a test payload using the Event Ingestion Console to populate the live audit log.'
-              : `No events recorded with status "${filterStatus}" matching your search criteria.`}
+              ? 'Submit an event using the Ingestion Console to begin monitoring the pipeline.'
+              : `No events recorded matching "${filterStatus === 'FAILED_OR_REJECTED' ? 'Failed/Rejected' : filterStatus}" or your search term.`}
           </p>
         </div>
       ) : (
@@ -135,13 +134,13 @@ export const LiveEventFeed: React.FC<Props> = ({
           <table className="data-table" aria-label="Raw Ingestion and Processed Events Table">
             <thead>
               <tr>
-                <th style={{ width: '70px' }}>ID</th>
-                <th style={{ width: '130px' }}>Status</th>
+                <th style={{ width: '60px' }}>ID</th>
+                <th style={{ width: '120px' }}>Status</th>
                 <th>Client</th>
                 <th>Metric / Amount</th>
                 <th>Timestamp</th>
                 <th>Payload / Error Trace</th>
-                <th style={{ width: '40px' }}></th>
+                <th style={{ width: '36px' }}></th>
               </tr>
             </thead>
             <tbody>
@@ -194,12 +193,12 @@ export const LiveEventFeed: React.FC<Props> = ({
                       <td className="cell-payload">
                         {ev.error_message ? (
                           <div className="error-pill" title={ev.error_message}>
-                            <AlertOctagon size={13} />
+                            <AlertOctagon size={12} />
                             <span>{ev.error_message}</span>
                           </div>
                         ) : (
                           <div className="payload-snippet">
-                            <code>{JSON.stringify(ev.raw_payload).substring(0, 50)}...</code>
+                            <code>{JSON.stringify(ev.raw_payload).substring(0, 45)}...</code>
                           </div>
                         )}
                       </td>
@@ -207,9 +206,9 @@ export const LiveEventFeed: React.FC<Props> = ({
                       <td className="cell-expand">
                         <button
                           className="btn-expand"
-                          aria-label={isExpanded ? 'Collapse event payload' : 'Expand event payload'}
+                          aria-label={isExpanded ? 'Collapse payload' : 'Expand payload'}
                         >
-                          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                         </button>
                       </td>
                     </tr>
@@ -218,14 +217,14 @@ export const LiveEventFeed: React.FC<Props> = ({
                     {isExpanded && (
                       <tr className="drawer-row">
                         <td colSpan={7}>
-                          <div className="event-drawer-content animate-slide-in">
+                          <div className="event-drawer-content animate-fade-in">
                             <div className="drawer-grid">
                               {/* Metadata Column */}
                               <div className="drawer-meta-col">
                                 <h5 className="drawer-section-title">Audit Metadata</h5>
                                 <div className="meta-list">
                                   <div className="meta-item">
-                                    <span className="meta-label">Raw Record ID:</span>
+                                    <span className="meta-label">Record ID:</span>
                                     <span className="meta-val">#{ev.id}</span>
                                   </div>
                                   <div className="meta-item">
@@ -233,7 +232,7 @@ export const LiveEventFeed: React.FC<Props> = ({
                                     <span className="meta-val">{getStatusBadge(ev.status)}</span>
                                   </div>
                                   <div className="meta-item">
-                                    <span className="meta-label">Client Identifier:</span>
+                                    <span className="meta-label">Client ID:</span>
                                     <span className="meta-val">{ev.client_id || 'N/A'}</span>
                                   </div>
                                   <div className="meta-item">
@@ -241,7 +240,7 @@ export const LiveEventFeed: React.FC<Props> = ({
                                     <span className="meta-val">{ev.amount !== undefined ? `$${Number(ev.amount).toFixed(2)}` : 'N/A'}</span>
                                   </div>
                                   <div className="meta-item">
-                                    <span className="meta-label">Ingestion Received:</span>
+                                    <span className="meta-label">Received At:</span>
                                     <span className="meta-val">{new Date(ev.received_at).toISOString()}</span>
                                   </div>
                                   {ev.timestamp && (
@@ -263,7 +262,7 @@ export const LiveEventFeed: React.FC<Props> = ({
                                           }}
                                           title="Copy Fingerprint"
                                         >
-                                          <Copy size={12} />
+                                          <Copy size={11} />
                                         </button>
                                       </div>
                                     </div>
@@ -283,7 +282,7 @@ export const LiveEventFeed: React.FC<Props> = ({
                                     }}
                                     title="Copy Raw Payload"
                                   >
-                                    <Copy size={12} /> Copy JSON
+                                    <Copy size={11} /> Copy JSON
                                   </button>
                                 </div>
                                 <pre className="drawer-code-block">

@@ -2,13 +2,8 @@ import React, { useState } from 'react';
 import {
   Play,
   CheckCircle2,
-  AlertTriangle,
   RotateCcw,
-  Zap,
-  ArrowRight,
-  ShieldAlert,
-  Sparkles,
-  HelpCircle
+  Sparkles
 } from 'lucide-react';
 import { api, IngestResponse } from '../api/client';
 import { useToast } from './Toast';
@@ -42,7 +37,6 @@ const DEMO_PAYLOAD = {
 export const DemoScenarioHelper: React.FC<Props> = ({
   onRefreshData,
   onPipelineStageChange,
-  simulateFailure,
   onSetSimulateFailure
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -56,7 +50,7 @@ export const DemoScenarioHelper: React.FC<Props> = ({
       title: 'Initial Event Ingestion',
       actionLabel: 'Submit Event E',
       description: 'Send canonical Event E ($1,500.00 for client_DEMO_E) under normal mode.',
-      expectedOutcome: 'Status is PROCESSED. Aggregates increase by $1,500.00 (Count: 1).',
+      expectedOutcome: 'Status is PROCESSED. Aggregates increase by $1,500.00.',
       expectedStatus: 'PROCESSED'
     },
     {
@@ -64,7 +58,7 @@ export const DemoScenarioHelper: React.FC<Props> = ({
       title: 'Idempotent Duplicate Re-submission',
       actionLabel: 'Submit Duplicate Event E',
       description: 'Re-send the exact same payload with identical SHA-256 fingerprint.',
-      expectedOutcome: 'Status is DUPLICATE. Aggregates remain unchanged at $1,500.00 (Count: 1).',
+      expectedOutcome: 'Status is DUPLICATE. Aggregates remain unchanged at $1,500.00.',
       expectedStatus: 'DUPLICATE'
     },
     {
@@ -72,23 +66,23 @@ export const DemoScenarioHelper: React.FC<Props> = ({
       title: 'Inject Database Write Crash',
       actionLabel: 'Arm Failure Simulation',
       description: 'Enable simulated mid-request database write failure & transaction rollback.',
-      expectedOutcome: 'Failure simulation mode enabled.',
+      expectedOutcome: 'Fault injection simulation enabled.',
       expectedStatus: 'SIMULATION_ON'
     },
     {
       stepNumber: 4,
-      title: 'Submit Event Under Database Crash',
-      actionLabel: 'Submit Event E Under Failure',
-      description: 'Send new event while database simulation is active.',
+      title: 'Submit Event Under Crash',
+      actionLabel: 'Submit Event Under Crash',
+      description: 'Send new event while database failure simulation is active.',
       expectedOutcome: 'Status is FAILED. Transaction safely rolls back with 0 aggregate drift.',
       expectedStatus: 'FAILED'
     },
     {
       stepNumber: 5,
       title: 'Recovery & Safe Re-submission',
-      actionLabel: 'Disarm Failure & Retry',
+      actionLabel: 'Disarm & Retry',
       description: 'Disable failure mode and re-submit. System processes safely with zero corruption.',
-      expectedOutcome: 'Status is PROCESSED or DUPLICATE depending on target payload.',
+      expectedOutcome: 'Status is PROCESSED. System recovered with full integrity.',
       expectedStatus: 'RECOVERED'
     }
   ];
@@ -98,19 +92,17 @@ export const DemoScenarioHelper: React.FC<Props> = ({
 
     try {
       if (stepNum === 1) {
-        // Normal ingestion of DEMO_PAYLOAD
         onPipelineStageChange('RECEIVED');
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 120));
         onPipelineStageChange('PERSISTING');
         const res = await api.ingestEvent(DEMO_PAYLOAD, false);
         onPipelineStageChange('PROCESSED', res);
         setStepLogs(prev => [...prev, `[Step 1] Submitted Event E -> ${res.status} ($1,500.00 aggregate added)`]);
-        showToast('success', 'Step 1 Complete', 'Event E successfully processed & aggregated');
+        showToast('success', 'Step 1 Complete', 'Event E processed & aggregated');
         setCurrentStep(2);
       } else if (stepNum === 2) {
-        // Re-submit duplicate
         onPipelineStageChange('RECEIVED');
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 120));
         onPipelineStageChange('DEDUPLICATING');
         const res = await api.ingestEvent(DEMO_PAYLOAD, false);
         onPipelineStageChange('DUPLICATE', res);
@@ -118,16 +110,14 @@ export const DemoScenarioHelper: React.FC<Props> = ({
         showToast('info', 'Step 2 Complete', 'Identified as duplicate. Aggregate unchanged!');
         setCurrentStep(3);
       } else if (stepNum === 3) {
-        // Enable failure mode
         await api.toggleFailureMode(true);
         onSetSimulateFailure(true);
         setStepLogs(prev => [...prev, `[Step 3] Enabled failure simulation mode`]);
         showToast('warning', 'Step 3 Complete', 'Database failure simulation is now ACTIVE');
         setCurrentStep(4);
       } else if (stepNum === 4) {
-        // Ingest under failure
         onPipelineStageChange('RECEIVED');
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 120));
         onPipelineStageChange('PERSISTING');
         const failPayload = {
           source: 'client_CRASH_TEST',
@@ -139,11 +129,10 @@ export const DemoScenarioHelper: React.FC<Props> = ({
         showToast('error', 'Step 4 Complete', 'Simulated failure safely caught & rolled back!');
         setCurrentStep(5);
       } else if (stepNum === 5) {
-        // Disarm failure and retry
         await api.toggleFailureMode(false);
         onSetSimulateFailure(false);
         onPipelineStageChange('RECEIVED');
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 120));
         onPipelineStageChange('PERSISTING');
         const recoveryPayload = {
           source: 'client_RECOVERED',
@@ -176,10 +165,10 @@ export const DemoScenarioHelper: React.FC<Props> = ({
   };
 
   return (
-    <div className="demo-helper-card glass-card animate-fade-in" aria-label="Fault Tolerance Evaluator Walkthrough">
+    <div className="demo-helper-card animate-fade-in" aria-label="Fault Tolerance Evaluator Walkthrough">
       <div className="demo-header">
         <div className="demo-title-group">
-          <Sparkles size={18} className="text-primary" />
+          <Sparkles size={16} className="text-primary" />
           <h3 className="demo-title">Fault-Tolerance Evaluation Walkthrough</h3>
         </div>
         <button
@@ -207,7 +196,7 @@ export const DemoScenarioHelper: React.FC<Props> = ({
               className={`demo-step-row ${isCurrent ? 'step-current' : ''} ${isCompleted ? 'step-completed' : ''}`}
             >
               <div className="step-badge">
-                {isCompleted ? <CheckCircle2 size={16} className="text-emerald" /> : <span>{step.stepNumber}</span>}
+                {isCompleted ? <CheckCircle2 size={14} className="text-emerald" style={{ color: '#10b981' }} /> : <span>{step.stepNumber}</span>}
               </div>
 
               <div className="step-details">
@@ -228,7 +217,7 @@ export const DemoScenarioHelper: React.FC<Props> = ({
                   onClick={() => executeStep(step.stepNumber)}
                   disabled={isRunning}
                 >
-                  <Play size={12} />
+                  <Play size={11} />
                   <span>{step.actionLabel}</span>
                 </button>
               </div>

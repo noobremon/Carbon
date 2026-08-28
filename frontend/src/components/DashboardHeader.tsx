@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Activity, RefreshCw, AlertTriangle, RotateCcw } from 'lucide-react';
+import { ShieldCheck, RefreshCw, AlertTriangle, RotateCcw } from 'lucide-react';
 
 interface Props {
   isBackendHealthy: boolean;
@@ -19,19 +19,19 @@ export const DashboardHeader: React.FC<Props> = ({
   onReset
 }) => {
   return (
-    <header className="app-header animate-fade-in">
+    <header className="app-header animate-fade-in" aria-label="Application Header">
       <div className="header-brand-group">
         <div className="brand-icon-wrapper">
-          <ShieldCheck size={28} className="brand-shield-icon" />
+          <ShieldCheck size={22} className="brand-shield-icon" />
           <span className="brand-pulse-dot" />
         </div>
         <div className="brand-text">
           <div className="brand-title-row">
             <h1 className="brand-title">Fault-Tolerant Data Processing</h1>
-            <span className="brand-version-badge">v1.2.0 AUDITED</span>
+            <span className="brand-version-badge">v1.2.0</span>
           </div>
           <p className="brand-subtitle">
-            Deduplication Fingerprinting • Atomic Isolation • Resilient Aggregation
+            Deduplication fingerprinting • Atomic isolation • Resilient aggregation
           </p>
         </div>
       </div>
@@ -40,22 +40,22 @@ export const DashboardHeader: React.FC<Props> = ({
         {/* System Health Status Indicator */}
         <div
           className={`health-badge ${isBackendHealthy ? 'healthy' : 'degraded'}`}
-          title={isBackendHealthy ? `Backend online (${healthLatency ?? 0}ms)` : 'Backend unreachable'}
+          title={isBackendHealthy ? `Engine online (${healthLatency ?? 0}ms)` : 'Backend unreachable'}
         >
           <span className={`status-dot ${isBackendHealthy ? 'dot-green' : 'dot-red'}`} />
           <span className="health-text">
-            {isBackendHealthy ? 'ENGINE ONLINE' : 'DISCONNECTED'}
+            {isBackendHealthy ? 'Engine Online' : 'Disconnected'}
           </span>
           {healthLatency !== null && isBackendHealthy && (
             <span className="health-latency">{healthLatency}ms</span>
           )}
         </div>
 
-        {/* Failure Simulation Flag Pill */}
+        {/* Failure Simulation Warning Pill */}
         {simulateFailure && (
-          <div className="fault-warning-pill animate-pulse">
-            <AlertTriangle size={14} />
-            <span>FAULT INJECTION ON</span>
+          <div className="fault-warning-pill">
+            <AlertTriangle size={13} />
+            <span>Fault Injection Active</span>
           </div>
         )}
 
@@ -69,8 +69,8 @@ export const DashboardHeader: React.FC<Props> = ({
             aria-label="Refresh data"
             disabled={isLoading}
           >
-            <RefreshCw size={15} className={isLoading ? 'spin' : ''} />
-            <span className="btn-label-desktop">Refresh</span>
+            <RefreshCw size={14} className={isLoading ? 'spin' : ''} />
+            <span>Refresh</span>
           </button>
 
           <button
@@ -80,8 +80,8 @@ export const DashboardHeader: React.FC<Props> = ({
             title="Clear in-memory database events and aggregates for a fresh test run"
             aria-label="Reset demonstration state"
           >
-            <RotateCcw size={15} />
-            <span className="btn-label-desktop">Reset State</span>
+            <RotateCcw size={14} />
+            <span>Reset State</span>
           </button>
         </div>
       </div>

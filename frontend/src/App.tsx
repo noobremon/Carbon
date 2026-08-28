@@ -15,8 +15,7 @@ import {
   AlertOctagon,
   Copy,
   BarChart3,
-  Sparkles,
-  Zap
+  Sparkles
 } from 'lucide-react';
 
 export function DashboardContent() {
@@ -81,7 +80,7 @@ export function DashboardContent() {
         targetState ? 'warning' : 'info',
         targetState ? 'Fault Injection Armed' : 'Fault Injection Disarmed',
         targetState
-          ? 'Database write crashes will simulate mid-request rollback.'
+          ? 'Database writes will simulate crash mid-request.'
           : 'Database operations returned to normal atomic commits.'
       );
     } catch (err: any) {
@@ -100,7 +99,7 @@ export function DashboardContent() {
       setPipelineStage('IDLE');
       setLastIngestResponse(null);
       await loadData(false);
-      showToast('success', 'System State Reset', 'All raw events, normalized records, and aggregates reset.');
+      showToast('success', 'System State Reset', 'All events and aggregates have been reset.');
     } catch (err: any) {
       showToast('error', 'Reset Failed', err.message);
     }
@@ -132,7 +131,7 @@ export function DashboardContent() {
           onReset={handleResetSystemState}
         />
 
-        {/* Animated Metric Cards */}
+        {/* Unified Cohesive Metric Cards */}
         <MetricCards
           processedCount={processedCount}
           duplicateCount={duplicateCount}
@@ -142,14 +141,14 @@ export function DashboardContent() {
           totalEvents={events.length}
         />
 
-        {/* Fault Injection Panel */}
+        {/* Sleek Fault Injection Status Bar */}
         <FaultInjectionPanel
           active={simulateFailure}
           onToggle={handleToggleFailure}
           isToggling={isTogglingFailure}
         />
 
-        {/* Live Processing Pipeline Visualizer */}
+        {/* Deterministic Processing Pipeline */}
         <PipelineVisualizer
           currentStage={pipelineStage}
           finalStatus={lastIngestResponse?.status}
@@ -160,9 +159,9 @@ export function DashboardContent() {
           amount={lastIngestResponse?.normalized_event?.amount}
         />
 
-        {/* Main Split Console Grid */}
+        {/* Main Two-Column Layout */}
         <div className="main-layout">
-          {/* Left Column: Event Submission Console */}
+          {/* Left Column: Event Ingestion Console (38%) */}
           <div className="left-console-column">
             <EventSubmitter
               onEventSubmitted={() => loadData(true)}
@@ -171,10 +170,10 @@ export function DashboardContent() {
             />
           </div>
 
-          {/* Right Column: Tabbed Views (Feed / Aggregates / Demo Helper) */}
+          {/* Right Column: Tabbed Views (Feed / Aggregates / Demo Helper) (62%) */}
           <div className="right-display-column">
             <div className="tabs-container glass-card">
-              {/* Navigation Tab Bar */}
+              {/* Segmented Tab Bar */}
               <div className="tabs-header" role="tablist">
                 <button
                   id="tab-all"
@@ -183,7 +182,7 @@ export function DashboardContent() {
                   className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
                   onClick={() => setActiveTab('all')}
                 >
-                  <Layers size={14} />
+                  <Layers size={13} />
                   <span>All Events</span>
                   <span className="tab-pill">{events.length}</span>
                 </button>
@@ -195,7 +194,7 @@ export function DashboardContent() {
                   className={`tab-btn ${activeTab === 'processed' ? 'active' : ''}`}
                   onClick={() => setActiveTab('processed')}
                 >
-                  <CheckCircle2 size={14} className="text-emerald" />
+                  <CheckCircle2 size={13} style={{ color: '#10b981' }} />
                   <span>Processed</span>
                   <span className="tab-pill">{processedCount}</span>
                 </button>
@@ -207,7 +206,7 @@ export function DashboardContent() {
                   className={`tab-btn ${activeTab === 'duplicate' ? 'active' : ''}`}
                   onClick={() => setActiveTab('duplicate')}
                 >
-                  <Copy size={14} className="text-cyan" />
+                  <Copy size={13} style={{ color: '#06b6d4' }} />
                   <span>Duplicates</span>
                   <span className="tab-pill">{duplicateCount}</span>
                 </button>
@@ -219,7 +218,7 @@ export function DashboardContent() {
                   className={`tab-btn ${activeTab === 'failed' ? 'active' : ''}`}
                   onClick={() => setActiveTab('failed')}
                 >
-                  <AlertOctagon size={14} className="text-rose" />
+                  <AlertOctagon size={13} style={{ color: '#f43f5e' }} />
                   <span>Failed/Rejected</span>
                   <span className="tab-pill">{failedCount + rejectedCount}</span>
                 </button>
@@ -231,7 +230,7 @@ export function DashboardContent() {
                   className={`tab-btn ${activeTab === 'aggregate' ? 'active' : ''}`}
                   onClick={() => setActiveTab('aggregate')}
                 >
-                  <BarChart3 size={14} className="text-primary" />
+                  <BarChart3 size={13} style={{ color: '#818cf8' }} />
                   <span>Aggregates</span>
                 </button>
 
@@ -242,8 +241,8 @@ export function DashboardContent() {
                   className={`tab-btn tab-btn-highlight ${activeTab === 'demo' ? 'active' : ''}`}
                   onClick={() => setActiveTab('demo')}
                 >
-                  <Sparkles size={14} />
-                  <span>Demo Assistant</span>
+                  <Sparkles size={13} />
+                  <span>Demo Guide</span>
                 </button>
               </div>
 
@@ -267,7 +266,7 @@ export function DashboardContent() {
                         : activeTab === 'duplicate'
                         ? 'DUPLICATE'
                         : activeTab === 'failed'
-                        ? 'FAILED'
+                        ? 'FAILED_OR_REJECTED'
                         : 'ALL'
                     }
                   />
@@ -288,4 +287,5 @@ export function App() {
     </ToastProvider>
   );
 }
+
 export default App;

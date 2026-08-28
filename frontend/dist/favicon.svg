@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#4338ca" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Rounded Base -->
+  <rect width="32" height="32" rx="8" fill="url(#bgGrad)" stroke="#334155" stroke-width="1.2" />
+
+  <!-- Outer Fault-Tolerant Shield Geometry -->
+  <path d="M16 4.5 L25 8.5 V15.5 C25 21.5 21 25.5 16 27.5 C11 25.5 7 21.5 7 15.5 V8.5 Z" 
+        fill="url(#shieldGrad)" 
+        fill-opacity="0.25"
+        stroke="#818cf8" 
+        stroke-width="1.5" 
+        stroke-linejoin="round" />
+
+  <!-- Data Flow Nodes / Stream Input -->
+  <circle cx="16" cy="10" r="1.8" fill="#38bdf8" />
+  <line x1="16" y1="12" x2="16" y2="15" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" />
+
+  <!-- Reliable Verification Core / Checkmark -->
+  <path d="M12.5 17.5 L15 20 L20 14" 
+        fill="none" 
+        stroke="url(#accentGrad)" 
+        stroke-width="2.2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" />
+</svg>

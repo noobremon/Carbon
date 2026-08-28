@@ -9,7 +9,13 @@ import {
   Sparkles,
   Trash2,
   Clock,
-  Code2
+  Code2,
+  ChevronDown,
+  ChevronRight,
+  Terminal,
+  ArrowRight,
+  Zap,
+  Globe
 } from 'lucide-react';
 import { api, IngestResponse } from '../api/client';
 import { PipelineStage } from './PipelineVisualizer';
@@ -136,6 +142,9 @@ export const PRESET_SCENARIOS: PresetScenario[] = [
   }
 ];
 
+const SIMULATED_CLIENTS = ['company_A', 'company_B', 'company_C', 'partner_X', 'service_Y'];
+const SIMULATED_METRICS = ['purchase', 'subscription_renewal', 'checkout', 'refund', 'upgrade'];
+
 export const EventSubmitter: React.FC<Props> = ({
   onEventSubmitted,
   simulateFailure,
@@ -145,6 +154,8 @@ export const EventSubmitter: React.FC<Props> = ({
   const [selectedPreset, setSelectedPreset] = useState<string>(PRESET_SCENARIOS[0].id);
   const [submitState, setSubmitState] = useState<'idle' | 'submitting' | 'processing' | 'success' | 'duplicate' | 'failed' | 'rejected'>('idle');
   const [lastResponse, setLastResponse] = useState<IngestResponse | null>(null);
+  const [showIntegration, setShowIntegration] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
   const { showToast } = useToast();
 
   const handleSelectPreset = (preset: PresetScenario) => {
@@ -170,6 +181,71 @@ export const EventSubmitter: React.FC<Props> = ({
   const handleCopyPayload = () => {
     navigator.clipboard.writeText(jsonText);
     showToast('info', 'Copied', 'JSON payload copied to clipboard');
+  };
+
+  const handleCopyCurl = () => {
+    const curl = `curl -X POST http://localhost:3001/api/events \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "source": "company_A",
+    "payload": {
+      "metric": "purchase",
+      "amount": 1400,
+      "timestamp": "${new Date().toISOString()}"
+    }
+  }'`;
+    navigator.clipboard.writeText(curl);
+    showToast('info', 'Copied', 'cURL command copied to clipboard');
+  };
+
+  const handleSimulateClient = async () => {
+    setIsSimulating(true);
+    const client = SIMULATED_CLIENTS[Math.floor(Math.random() * SIMULATED_CLIENTS.length)];
+    const metric = SIMULATED_METRICS[Math.floor(Math.random() * SIMULATED_METRICS.length)];
+    const amount = Math.round((50 + Math.random() * 4950) * 100) / 100;
+    const payload = {
+      source: client,
+      payload: {
+        metric,
+        amount,
+        timestamp: new Date().toISOString()
+      }
+    };
+
+    onPipelineStageChange('RECEIVED');
+    await new Promise(r => setTimeout(r, 80));
+    onPipelineStageChange('VALIDATING');
+    await new Promise(r => setTimeout(r, 80));
+    onPipelineStageChange('NORMALIZING');
+    await new Promise(r => setTimeout(r, 80));
+    onPipelineStageChange('DEDUPLICATING');
+    await new Promise(r => setTimeout(r, 80));
+    onPipelineStageChange('PERSISTING');
+
+    try {
+      const response = await api.ingestEvent(payload, simulateFailure);
+      setLastResponse(response);
+
+      if (response.status === 'PROCESSED') {
+        onPipelineStageChange('PROCESSED', response);
+        showToast('success', 'Simulated Client Event', `${client} → ${metric} $${amount.toFixed(2)} processed`);
+      } else if (response.status === 'DUPLICATE') {
+        onPipelineStageChange('DUPLICATE', response);
+        showToast('info', 'Duplicate Detected', `Simulated ${client} event matched existing fingerprint`);
+      } else if (response.status === 'FAILED') {
+        onPipelineStageChange('FAILED', response);
+        showToast('error', 'Simulated Failure', response.error || 'Transaction rolled back');
+      } else if (response.status === 'REJECTED') {
+        onPipelineStageChange('REJECTED', response);
+        showToast('warning', 'Rejected', response.error || 'Validation failed');
+      }
+      onEventSubmitted();
+    } catch (err: any) {
+      onPipelineStageChange('FAILED', { success: false, status: 'FAILED', error: err.message });
+      showToast('error', 'Simulation Error', err.message);
+    } finally {
+      setIsSimulating(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -235,13 +311,94 @@ export const EventSubmitter: React.FC<Props> = ({
   };
 
   return (
-    <div className="event-submission-panel glass-card animate-fade-in" aria-label="Event Ingestion Console">
+    <div className="event-submission-panel glass-card animate-fade-in" aria-label="Developer Test Client">
       <div className="panel-header">
         <div className="panel-title-group">
-          <FileCode size={18} className="text-primary" />
-          <h2 className="panel-title">Event Ingestion</h2>
+          <Terminal size={18} className="text-primary" />
+          <h2 className="panel-title">Developer Test Client</h2>
         </div>
-        <span className="panel-badge">Raw Ingest</span>
+        <span className="panel-badge">API Simulator</span>
+      </div>
+      <p className="panel-subtitle">
+        Simulate events that external applications would normally send automatically to this ingestion API.
+      </p>
+
+      {/* Integration Flow — Collapsible */}
+      <div className="integration-section">
+        <button
+          className="integration-toggle"
+          onClick={() => setShowIntegration(!showIntegration)}
+          aria-expanded={showIntegration}
+        >
+          {showIntegration ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          <Globe size={13} />
+          <span>How events reach this platform</span>
+        </button>
+
+        {showIntegration && (
+          <div className="integration-body animate-fade-in">
+            {/* Flow Diagram */}
+            <div className="integration-flow">
+              <div className="flow-node">
+                <span className="flow-node-label">External App</span>
+              </div>
+              <ArrowRight size={14} className="flow-arrow" />
+              <div className="flow-node flow-node-api">
+                <code>POST /api/events</code>
+              </div>
+              <ArrowRight size={14} className="flow-arrow" />
+              <div className="flow-node">
+                <span className="flow-node-label">Processing Pipeline</span>
+              </div>
+              <ArrowRight size={14} className="flow-arrow" />
+              <div className="flow-node">
+                <span className="flow-node-label">Aggregated Data</span>
+              </div>
+            </div>
+
+            {/* cURL Example */}
+            <div className="curl-example">
+              <div className="curl-header">
+                <span className="curl-label">Example: External backend request</span>
+                <button className="curl-copy-btn" onClick={handleCopyCurl} title="Copy cURL command">
+                  <Copy size={11} /> Copy
+                </button>
+              </div>
+              <pre className="curl-code"><code>{`curl -X POST /api/events \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "source": "company_A",
+    "payload": {
+      "metric": "purchase",
+      "amount": 1400,
+      "timestamp": "2024-01-01T12:00:00.000Z"
+    }
+  }'`}</code></pre>
+            </div>
+
+            <p className="integration-note">
+              In production, Company A's backend sends this request automatically. This console lets you simulate that request manually for testing.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Simulate External Client */}
+      <div className="simulate-client-row">
+        <button
+          id="btn-simulate-client"
+          className="btn-simulate-client"
+          onClick={handleSimulateClient}
+          disabled={isSimulating || submitState === 'submitting'}
+          title="Generate and send a randomized realistic test event through POST /api/events"
+        >
+          {isSimulating ? (
+            <><RefreshCw className="spin" size={14} /> <span>Sending...</span></>
+          ) : (
+            <><Zap size={14} /> <span>Simulate External Client</span></>
+          )}
+        </button>
+        <span className="simulate-hint">Sends a randomized event through the real API</span>
       </div>
 
       {/* Preset Scenario Selector */}
@@ -271,6 +428,12 @@ export const EventSubmitter: React.FC<Props> = ({
             );
           })}
         </div>
+      </div>
+
+      {/* Context Label */}
+      <div className="editor-context-label">
+        <FileCode size={12} />
+        <span>Manual test request — edit the JSON below or select a preset above</span>
       </div>
 
       {/* Code Editor Toolbar */}

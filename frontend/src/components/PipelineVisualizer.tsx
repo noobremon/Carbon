@@ -57,31 +57,31 @@ export const PipelineVisualizer: React.FC<Props> = ({
       num: '01',
       title: 'Receive',
       desc: 'Raw audit preserved',
-      icon: <Inbox size={15} />
+      icon: <Inbox size={18} />
     },
     {
       num: '02',
       title: 'Validate',
       desc: 'Schema & required fields',
-      icon: <FileCheck size={15} />
+      icon: <FileCheck size={18} />
     },
     {
       num: '03',
       title: 'Normalize',
-      desc: 'Canonical UTC & float',
-      icon: <Cpu size={15} />
+      desc: 'Canonical data',
+      icon: <Cpu size={18} />
     },
     {
       num: '04',
       title: 'Fingerprint',
       desc: 'Deterministic SHA-256',
-      icon: <Fingerprint size={15} />
+      icon: <Fingerprint size={18} />
     },
     {
       num: '05',
       title: 'Persist',
       desc: 'Atomic transaction',
-      icon: <Database size={15} />
+      icon: <Database size={18} />
     }
   ];
 
@@ -146,20 +146,29 @@ export const PipelineVisualizer: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* 5-Stage Stepper */}
+      {/* 5-Stage Pipeline Stepper */}
       <div className="pipeline-stepper">
         {steps.map((step, idx) => {
           const state = getStepState(idx);
 
           return (
-            <div key={step.num} className={`stepper-stage stage-${state}`}>
-              <div className="stepper-stage-top">
-                <span className="stage-step-num">{step.num}</span>
-                <span className="stage-icon">{step.icon}</span>
+            <React.Fragment key={step.num}>
+              <div className={`stepper-stage stage-${state}`}>
+                {/* Icon circle */}
+                <div className="stage-icon-circle">
+                  <span className="stage-icon">{step.icon}</span>
+                </div>
+                {/* Labels below icon */}
+                <div className="stage-labels">
+                  <span className="stage-title">{step.num}. {step.title}</span>
+                  <span className="stage-desc">{step.desc}</span>
+                </div>
               </div>
-              <span className="stage-title">{step.title}</span>
-              <span className="stage-desc">{step.desc}</span>
-            </div>
+              {/* Connector between steps (not after the last) */}
+              {idx < steps.length - 1 && (
+                <div className={`stepper-connector connector-${getStepState(idx) === 'completed' && getStepState(idx + 1) !== 'idle' ? 'active' : 'idle'}`} />
+              )}
+            </React.Fragment>
           );
         })}
       </div>

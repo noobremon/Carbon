@@ -650,94 +650,141 @@ code, pre, kbd {
   border: 1px solid var(--border-subtle);
 }
 
-/* Stepper Track */
+/* ═══════ Pipeline Stepper Track ═══════ */
 .pipeline-stepper {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  /* 5 step columns + 4 connector columns between them */
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr auto 1fr;
+  align-items: start;
+  gap: 0;
   position: relative;
+  padding: 8px 0 4px;
 }
 
+/* ── Individual Step ── */
 .stepper-stage {
   display: flex;
   flex-direction: column;
-  padding: 12px 14px;
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  gap: 6px;
+  align-items: center;
+  text-align: center;
+  padding: 8px 6px 12px;
   position: relative;
   transition: all 0.2s ease;
-  min-height: 84px;
 }
 
-.stepper-stage-top {
+/* ── Icon Circle ── */
+.stage-icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-}
-
-.stage-step-num {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  justify-content: center;
+  background: var(--bg-surface-elevated);
+  border: 2px solid var(--border-subtle);
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .stage-icon {
   display: flex;
   align-items: center;
+  justify-content: center;
   color: var(--text-dim);
+  transition: color 0.25s ease;
 }
 
+/* ── Labels Container ── */
+.stage-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 14px;
+  max-width: 130px;
+}
+
+/* ── Step Title ── */
 .stage-title {
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-main);
-  line-height: 1.2;
-}
-
-.stage-desc {
-  font-size: 0.7rem;
-  color: var(--text-muted);
   line-height: 1.3;
+  white-space: nowrap;
 }
 
-/* Stage States */
-.stepper-stage.stage-active {
+/* ── Step Description ── */
+.stage-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  word-break: break-word;
+  max-width: 120px;
+}
+
+/* ── Connector Line Between Steps ── */
+.stepper-connector {
+  /* center the connector line at the vertical midpoint of the icon circles */
+  align-self: start;
+  margin-top: 27px; /* half of icon circle height (40/2) + step top padding (8) - 1px */
+  height: 2px;
+  width: 100%;
+  min-width: 16px;
+  background: var(--border-subtle);
+  border-radius: 1px;
+  transition: background 0.3s ease;
+}
+
+.stepper-connector.connector-active {
+  background: rgba(16, 185, 129, 0.5);
+}
+
+/* ═══════ Stage States ═══════ */
+.stepper-stage.stage-active .stage-icon-circle {
   border-color: var(--primary-light);
-  background: rgba(99, 102, 241, 0.08);
+  background: rgba(99, 102, 241, 0.12);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
 }
 
 .stepper-stage.stage-active .stage-icon {
   color: var(--primary-light);
 }
 
-.stepper-stage.stage-completed {
-  border-color: rgba(16, 185, 129, 0.3);
-  background: rgba(16, 185, 129, 0.04);
+.stepper-stage.stage-active .stage-title {
+  color: var(--primary-light);
 }
 
-.stepper-stage.stage-completed .stage-step-num {
-  color: #10b981;
+.stepper-stage.stage-completed .stage-icon-circle {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.1);
 }
 
 .stepper-stage.stage-completed .stage-icon {
   color: #10b981;
 }
 
-.stepper-stage.stage-failed {
-  border-color: rgba(244, 63, 94, 0.35);
-  background: rgba(244, 63, 94, 0.06);
+.stepper-stage.stage-completed .stage-title {
+  color: #10b981;
 }
 
-.stepper-stage.stage-failed .stage-step-num,
+.stepper-stage.stage-failed .stage-icon-circle {
+  border-color: rgba(244, 63, 94, 0.5);
+  background: rgba(244, 63, 94, 0.1);
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.2);
+}
+
 .stepper-stage.stage-failed .stage-icon {
   color: #f43f5e;
 }
 
+.stepper-stage.stage-failed .stage-title {
+  color: #f43f5e;
+}
+
 .stepper-stage.stage-skipped {
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 /* Terminal Outcome Banner */
@@ -2211,7 +2258,20 @@ code, pre, kbd {
     gap: 16px;
   }
   .pipeline-stepper {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .stepper-stage {
+    padding: 12px 8px;
+  }
+  .stepper-connector {
+    width: 2px !important;
+    height: 24px;
+    min-width: unset;
+    margin-top: 0;
+    align-self: center;
   }
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);

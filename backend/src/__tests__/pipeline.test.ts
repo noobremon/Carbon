@@ -1,3 +1,4 @@
+import { describe, test, expect, beforeEach } from '@jest/globals';
 import { NormalizerService } from '../services/normalizer.service';
 import { FingerprintService } from '../services/fingerprint.service';
 import { IngestService } from '../services/ingest.service';

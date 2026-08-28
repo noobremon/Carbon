@@ -1,3 +1,4 @@
+import { describe, test, expect, beforeEach } from '@jest/globals';
 import { IngestService } from '../services/ingest.service';
 import { EventRepository } from '../repositories/event.repository';
 import { inMemoryDb } from '../config/database';

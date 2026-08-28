@@ -1,3 +1,4 @@
+import { describe, test, expect, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import app from '../app';
 import { NormalizerService } from '../services/normalizer.service';

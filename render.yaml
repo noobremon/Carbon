@@ -1,0 +1,40 @@
+services:
+  # Backend Node.js Web Service
+  - type: web
+    name: fault-tolerant-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fault-tolerant-postgres
+          property: connectionString
+
+  # Frontend Static Site (Vite + React)
+  - type: web
+    name: fault-tolerant-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: fault-tolerant-backend
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  # Managed PostgreSQL Database on Render
+  - name: fault-tolerant-postgres
+    plan: free
+    databaseName: fault_tolerant_db
+    user: postgres_user

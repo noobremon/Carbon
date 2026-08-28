@@ -35,12 +35,14 @@ export interface IngestResponse {
   latency_ms?: number;
 }
 
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
 export const api = {
   /**
    * Checks backend health and connectivity
    */
   async getHealth(): Promise<{ status: string; service: string; timestamp: string }> {
-    const res = await fetch('/api/health');
+    const res = await fetch(`${API_BASE}/api/health`);
     if (!res.ok) throw new Error('Backend health check failed');
     return res.json();
   },
@@ -61,7 +63,7 @@ export const api = {
     const bodyContent = typeof payload === 'string' ? payload : JSON.stringify(payload);
 
     try {
-      const res = await fetch('/api/events', {
+      const res = await fetch(`${API_BASE}/api/events`, {
         method: 'POST',
         headers,
         body: bodyContent
@@ -97,7 +99,7 @@ export const api = {
    * Returns recent events history
    */
   async getEvents(limit = 100): Promise<{ success: boolean; events: RawEventEntity[] }> {
-    const res = await fetch(`/api/events?limit=${limit}`);
+    const res = await fetch(`${API_BASE}/api/events?limit=${limit}`);
     if (!res.ok) throw new Error('Failed to retrieve events');
     return res.json();
   },
@@ -112,7 +114,7 @@ export const api = {
     if (params?.start_date) query.append('start_date', params.start_date);
     if (params?.end_date) query.append('end_date', params.end_date);
 
-    const res = await fetch(`/api/aggregates?${query.toString()}`);
+    const res = await fetch(`${API_BASE}/api/aggregates?${query.toString()}`);
     if (!res.ok) throw new Error('Failed to retrieve aggregates');
     return res.json();
   },
@@ -121,7 +123,7 @@ export const api = {
    * GET /api/system/failure-mode
    */
   async getFailureMode(): Promise<{ simulate_failure: boolean }> {
-    const res = await fetch('/api/system/failure-mode');
+    const res = await fetch(`${API_BASE}/api/system/failure-mode`);
     if (!res.ok) throw new Error('Failed to query failure mode');
     return res.json();
   },
@@ -130,7 +132,7 @@ export const api = {
    * POST /api/system/failure-mode
    */
   async toggleFailureMode(enable: boolean): Promise<{ success: boolean; simulate_failure: boolean; message: string }> {
-    const res = await fetch('/api/system/failure-mode', {
+    const res = await fetch(`${API_BASE}/api/system/failure-mode`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enable })
@@ -143,7 +145,7 @@ export const api = {
    * POST /api/system/reset
    */
   async resetState(): Promise<{ success: boolean; message: string }> {
-    const res = await fetch('/api/system/reset', { method: 'POST' });
+    const res = await fetch(`${API_BASE}/api/system/reset`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to reset system state');
     return res.json();
   }
